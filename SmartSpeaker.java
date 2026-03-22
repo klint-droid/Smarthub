@@ -1,5 +1,7 @@
 import java.util.*;
 
+import javax.swing.JOptionPane;
+
 public class SmartSpeaker extends BaseDevice implements SmartDevice{
     private int volume;
     private List<String> tracks = new ArrayList<>();
@@ -21,13 +23,13 @@ public class SmartSpeaker extends BaseDevice implements SmartDevice{
     }
 
     public void viewState(){
-        System.out.println("Volume: " + volume);
+        JOptionPane.showMessageDialog(null, "Volume: " + volume);
         if(tracks.isEmpty()){
-            System.out.println("No tracks available.");
+            JOptionPane.showMessageDialog(null, "No tracks available.");
         } else {
-            System.out.println("Current track: " + tracks.get(currentIndex));
+            JOptionPane.showMessageDialog(null, "Current track: " + tracks.get(currentIndex));
         }
-        System.out.println("Playing: " + playing);
+        JOptionPane.showMessageDialog(null, "Playing: " + playing);
     }
 
     public int getVolume(){
@@ -55,53 +57,59 @@ public class SmartSpeaker extends BaseDevice implements SmartDevice{
     public void modifySettings(Scanner scanner){
         while(true){
             try {
-                System.out.println("Enter volume (0-100): ");
-                int volumeInput = scanner.nextInt();
+                String input = JOptionPane.showInputDialog("Enter volume (0-100): ");
+                if(input == null) return;
+                int volumeInput = Integer.parseInt(input);
                 setVolume(volumeInput);
                 break;
             } catch(InputMismatchException e) {
-                System.out.println("Invalid input. Please enter a number between 0 and 100 only. Please try again.");
-                scanner.nextLine();
+                JOptionPane.showMessageDialog(null, "Invalid input. Please enter a number between 0 and 100 only. Please try again.");
             }
             catch (IllegalArgumentException e) {
-                System.out.println(e.getMessage());
-                System.out.println("Please try again.");
+                JOptionPane.showMessageDialog(null, e.getMessage() + "\nPlease try again.");
             }
         }
         
-        scanner.nextLine();
         int choice;
         while(true){
             try {
-                System.out.println("\n1. Generate Random Playlist");
-                System.out.println("2. Enter Tracks Manually");
-                System.out.println("Option: ");
-                choice = scanner.nextInt();
+                String[] actions = {"1. Generate random playlist", "2. Add tracks manually", "3. Back"};
+                
+                int action = JOptionPane.showOptionDialog(
+                    null,
+                    "Select an action:",
+                    "SMART SPEAKER",
+                    JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.INFORMATION_MESSAGE,
+                    null,
+                    actions,
+                    actions[0]
+                );
+
+                choice = action + 1;
+
                 if(choice == 1 || choice == 2) break;
-                else System.out.println("Invalid choice.");
+                else JOptionPane.showMessageDialog(null,    "Invalid choice.");
                 
             } catch (InputMismatchException e) {
-                System.out.println("Please try again. Enter a number between 1 and 2 only.");
-                scanner.nextLine();
+                JOptionPane.showMessageDialog(null, "Please try again. Enter a number between 1 and 2 only.");
             }
         }
-        scanner.nextLine();
 
         int count;
 
         while(true){
             try{
-                System.out.println("How many tracks do you want to add?: ");
-                count = scanner.nextInt();
+                String input = JOptionPane.showInputDialog("How many tracks do you want to add?: ");
+                if(input == null) return;
+                count = Integer.parseInt(input);
 
                 if(count > 0 && count <= availableTracks.length) break;
-                else System.out.println("Invalid number of tracks. Please try again.");
+                else JOptionPane.showMessageDialog(null, "Invalid number of tracks. Please try again.");
             } catch(InputMismatchException e){
-                System.out.println("Please try again. Enter a number between 1 and " + availableTracks.length + " only.");
-                scanner.nextLine();
+                JOptionPane.showMessageDialog(null, "Please try again. Enter a number between 1 and " + availableTracks.length + " only.");
             }
         }
-        scanner.nextLine();
         tracks.clear();
 
         if(choice == 1){
@@ -116,41 +124,41 @@ public class SmartSpeaker extends BaseDevice implements SmartDevice{
             tracks.addAll(uniqueTracks);
         } else {    
             for(int i = 0; i < count; i++){
-                System.out.println("Enter track " + (i + 1) + ": ");
-                String track = scanner.nextLine();
-                tracks.add(track);
+                String input = JOptionPane.showInputDialog("Enter track " + (i + 1) + ": ");
+                if(input == null) return;
+                tracks.add(input);
             }
         }
         currentIndex = 0;
-        System.out.println("\nPlaylist generated.");
+        JOptionPane.showMessageDialog(null, "\nPlaylist generated.");
         for(int i = 0; i < tracks.size(); i++){
-            System.out.println((i + 1) + ". " + tracks.get(i));
+            JOptionPane.showMessageDialog(null, (i + 1) + ". " + tracks.get(i));
         }
     }
     public void play(){
         if(tracks.isEmpty()){
-            System.out.println("No tracks available.");
+            JOptionPane.showMessageDialog(null, "No tracks available.");
             return;
         }
         setPlaying(true);
-        System.out.println("Playing: " + tracks.get(currentIndex));
+        JOptionPane.showMessageDialog(null, "Playing: " + tracks.get(currentIndex));
     }
 
     public void pause(){
         playing = false;
-        System.out.println("Paused");
+        JOptionPane.showMessageDialog(null, "Paused" + tracks.get(currentIndex));
     }
 
     public void skip(){
         if(tracks.isEmpty()){
-            System.out.println("No tracks to skip.");
+            JOptionPane.showMessageDialog(null, "No tracks to skip.");
             return;
         } 
         currentIndex = (currentIndex + 1) % tracks.size();
-        System.out.println("Skipping to next track: " + tracks.get(currentIndex));
+        JOptionPane.showMessageDialog(null, "Skipping to next track: " + tracks.get(currentIndex));
     }
     public void execute(){
         play();
-        System.out.println("Resuming playback: " + tracks.get(currentIndex));
+        JOptionPane.showMessageDialog(null, "Resuming playback: " + tracks.get(currentIndex));
     }
 }

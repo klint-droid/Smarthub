@@ -1,5 +1,7 @@
 import java.util.Scanner;
 import java.util.InputMismatchException;
+import javax.swing.JOptionPane;
+
 public class SmartLight extends BaseDevice implements SmartDevice{
     private int brightness;
     private String color;
@@ -37,33 +39,34 @@ public class SmartLight extends BaseDevice implements SmartDevice{
     }
 
     public void viewState() {
-        System.out.println("Brightness: " + brightness);
-        System.out.println("Color: " + color);
+        String info = "Device Name: " + getName() + "\nBrightness: " + getBrightness() + "\nColor: " + getColor();
+        JOptionPane.showMessageDialog(null, info);
     }
 
     public void modifySettings(Scanner scanner) {
         int brightnessInput;
         while(true){
             try{
-                System.out.println("Enter brightness (0-100): ");
-                brightnessInput = scanner.nextInt();
+                String input = JOptionPane.showInputDialog("Enter brightness (0-100):");
+
+                if(input == null){
+                    return;
+                }
+                brightnessInput = Integer.parseInt(input);
                 setBrightness(brightnessInput);
                 break;
             } catch (InputMismatchException e) {
-                System.out.println("Invalid input. Please enter a number between 0 and 100 only. Please try again.");
-                scanner.nextLine();
+                JOptionPane.showMessageDialog(null, "Invalid input. Please enter a number between 0 and 100.");
             }
             catch (IllegalArgumentException e) {
-                System.out.println(e.getMessage());
-                System.out.println("Please try again.");
+                JOptionPane.showMessageDialog(null, e.getMessage() + "\nPlease try again.");
             }
         }
-        System.out.println("Settings modified. Brightness set to " + brightness + ", Color set to " + color + ".");
+        JOptionPane.showMessageDialog(null, "Settings modified. Brightness set to " + brightness + ", Color set to " + color + ".");
     }
     public void execute(){
         setBrightness(100);
-        System.out.println("Executing smart light...");
-        System.out.println("Brightness set to full.");
-        System.out.println("Color set to " + color + ".");
+        String message = "Executing smart light...\nBrightness set to " + getBrightness() + ", Color set to " + getColor() + ".";
+        JOptionPane.showMessageDialog(null, message);
     }
 }

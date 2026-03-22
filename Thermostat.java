@@ -1,5 +1,7 @@
 import java.util.Scanner;
 
+import javax.swing.JOptionPane;
+
 public class Thermostat extends BaseDevice implements SmartDevice {
     private double currentTemp;
     private double targetTemp = 0.0;
@@ -29,25 +31,29 @@ public class Thermostat extends BaseDevice implements SmartDevice {
         }
     }
     public void viewState() {
-        System.out.println("Current temperature: " + currentTemp + "°C, Target temperature: " + targetTemp + "°C");
+            JOptionPane.showMessageDialog(null,"Current temperature: " + currentTemp + "°C, Target temperature: " + targetTemp + "°C");
     }
     public void modifySettings(Scanner scanner) {
         while(true){
             try {
-                System.out.println("Enter target temperature(16-30): ");
-                int temp = scanner.nextInt();
-                setTargetTemp(temp);
+                String inputTemp = JOptionPane.showInputDialog("Enter target temperature(16-30):");
+                
+                if(inputTemp == null){
+                    return;
+                }
+                double targetTempInput = Double.parseDouble(inputTemp);
+                setTargetTemp(targetTempInput);
                 break;
+
             } catch (IllegalArgumentException e) {
-                System.out.println(e.getMessage());
-                System.out.println("Please try again.");
+                JOptionPane.showMessageDialog(null, e.getMessage() + "\nPlease try again.");
             }
         }
-        System.out.println("Settings modified. Target temperature set to " + targetTemp + "°C.");
+        JOptionPane.showMessageDialog(null, "Settings modified. Target temperature set to " + targetTemp + "°C.");
     }
     public void execute() {
-        System.out.println("Executing thermostat...");
         setCurrentTemp(getTargetTemp());
-        System.out.println("Target temperature set to " + getCurrentTemp()+ "°C.");
+        String message = "Executing thermostat...Target temperature set to " + getCurrentTemp() + "°C.";
+        JOptionPane.showMessageDialog(null, message);
     }
 }

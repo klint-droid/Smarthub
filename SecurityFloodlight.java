@@ -1,6 +1,8 @@
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
+import javax.swing.JOptionPane;
+
 public class SecurityFloodlight extends SmartLight {
     
     private String[] motionSensitivityOptions = {"LOW", "MEDIUM", "HIGH"};
@@ -21,45 +23,44 @@ public class SecurityFloodlight extends SmartLight {
     }
     public void viewState() {
         super.viewState();
-        System.out.println("Motion Sensitivity: " + motionSensitivityOptions[sensitivityIndex]);
-        System.out.println("Motion Armed: " + (motionArmed ? "Yes" : "No"));
+        String info = "Motion Detection: " + (motionArmed ? "ON" : "OFF") + "\nSensitivity: " + motionSensitivityOptions[sensitivityIndex];
+        JOptionPane.showMessageDialog(null, info);
     }
 
     public void modifySettings(Scanner scanner) {
         while(true){
             try{
-                System.out.println("Enter motion detection status (1 = ON, 0 = OFF): ");
-                int motionStatusInput = scanner.nextInt();
+                String input = JOptionPane.showInputDialog("Enter motion detection status (1 = ON, 0 = OFF): ");
+                if(input == null) return;
+                int motionStatusInput = Integer.parseInt(input);
                 setMotionArmed(motionStatusInput == 1);
                 break;
             } catch (InputMismatchException e){
-                System.out.println("Invalid input. Please enter a number between 0 and 1 only. Please try again.");
-                scanner.nextLine();
+                JOptionPane.showMessageDialog(null, "Invalid input. Please enter a number between 0 and 1 only. Please try again.");
             }
         }
-        scanner.nextLine();
         while(true){
             try{
                 super.modifySettings(scanner);
 
-                System.out.println("Select sensitivity:");
+                String message = "Select sensitivity:";
                 for (int i = 0; i < motionSensitivityOptions.length; i++) {
-                    System.out.println((i + 1) + ". " + motionSensitivityOptions[i]);
+                    message += (i + 1) + ". " + motionSensitivityOptions[i] + "\n";
                 }
-
-                int choice = scanner.nextInt(); 
+                String input = JOptionPane.showInputDialog(null, message);
+                if(input == null) return;
+                int choice = Integer.parseInt(input);
                 if (choice >= 1 && choice <= 3) {
-                    sensitivityIndex = choice - 1;
+                    String selected = motionSensitivityOptions[choice - 1];
+                    JOptionPane.showMessageDialog(null, "You selected: " + selected);
                 } else {
                     throw  new IllegalArgumentException("Invalid choice.");
                 }
                 break;
             } catch (InputMismatchException e){
-                System.out.println("Invalid input. Please enter a number between 1 and 3 only. Please try again.");
-                scanner.nextLine();
+                JOptionPane.showMessageDialog(null, "Invalid input. Please enter a number between 1 and 3 only. Please try again.");
             } catch (IllegalArgumentException e){
-                System.out.println(e.getMessage());
-                System.out.println("Please try again.");
+                JOptionPane.showMessageDialog(null, e.getMessage() + "\nPlease try again.");
             }
         }
 

@@ -1,4 +1,7 @@
 import java.util.Scanner;
+
+import javax.swing.JOptionPane;
+
 import java.util.InputMismatchException;
 public class SecurityCamera extends BaseDevice implements SmartDevice{
     private boolean powerOn = false;
@@ -24,18 +27,18 @@ public class SecurityCamera extends BaseDevice implements SmartDevice{
         this.recording = recording;
     }
     public void viewState(){
-        System.out.println("Power: " + (powerOn ? "ON" : "OFF"));
-        System.out.println("Recording: " + (recording ? "YES" : "NO"));
+        String info = "Device Name: " + getName() + "\nPower: " + (powerOn ? "ON" : "OFF") + "\nRecording: " + (recording ? "YES" : "NO");
+        JOptionPane.showMessageDialog(null, info);
     }
     public void modifySettings(Scanner scanner){
 
 
         while (true) {
             try{
-                System.out.println("Enter power (1 = ON, 0 = OFF): ");
-                int powerInput = scanner.nextInt();
-                scanner.nextLine();
-
+                String input = JOptionPane.showInputDialog("Enter power (1 = ON, 0 = OFF): ");
+                if(input == null) return;
+                int powerInput = Integer.parseInt(input);
+                
                 if(powerInput == 1){
                     setPowerOn(true);
                 } else if (powerInput == 0){
@@ -46,53 +49,50 @@ public class SecurityCamera extends BaseDevice implements SmartDevice{
                     throw new IllegalArgumentException("Invalid input.");
                 }
                 break;
-            } catch (InputMismatchException e) {
-                System.out.println("Invalid input. Please enter a number between 0 and 1 only. Please try again.");
-                scanner.nextLine();
+            } catch (IllegalArgumentException e) {
+                JOptionPane.showMessageDialog(null, e.getMessage() + "\nPlease try again.");
             } 
-            catch (IllegalArgumentException e) {
-                System.out.println(e.getMessage());
-                System.out.println("Please try again.");
-                scanner.nextLine();
+            catch (InputMismatchException e) {
+                JOptionPane.showMessageDialog(null, "Please enter a number between 0 and 1 only. Please try again.");
             }
         }
     }
 
     public void startRecording(){
         if(!powerOn){
-            System.out.println("Camera is off...Cannot start recording.");
+            JOptionPane.showMessageDialog(null, "Camera is off...Cannot start recording.");
             return;
         }
 
         if(!recording){
             setRecording(true);
-            System.out.println("Recording started.");
+            JOptionPane.showMessageDialog(null, "Recording started.");
         } else {
-            System.out.println("Recording already started.");
+            JOptionPane.showMessageDialog(null, "Recording already started.");
         }
     }
 
     public void stopRecording(){
         if(!powerOn){
-            System.out.println("Camera is off...");
+            JOptionPane.showMessageDialog(null, "Camera is off...");
             return;
         }
 
         if(recording){
             setRecording(false);
-            System.out.println("Recording stopped.");
+            JOptionPane.showMessageDialog(null, "Recording stopped.");
         } else {
-            System.out.println("Already stopped.");
+            JOptionPane.showMessageDialog(null, "Already stopped.");
         }
     }
     public void execute(){
         if(powerOn && !recording){
             setRecording(true);
-            System.out.println("Executing security camera...");
-            System.out.println("Recording started.");
+            String message = "Executing security camera...\nRecording started...";
+            JOptionPane.showMessageDialog(null, message);
         } else {
             setRecording(false);
-            System.out.println("Camera is off...");
+            JOptionPane.showMessageDialog(null, "Camera is off...");
         }
     }
 }

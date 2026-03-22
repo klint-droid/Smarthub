@@ -1,10 +1,8 @@
-import java.util.Scanner;
-import java.util.InputMismatchException;
+import javax.swing.JOptionPane;
 
 public class CentralHub {
-    public static void main(String[] args) {
 
-        Scanner scanner = new Scanner(System.in);
+    public static void main(String[] args) {
 
         SmartDevice[] devices = {
             new SmartLight("Smart Light", 50, "White"),
@@ -16,101 +14,129 @@ public class CentralHub {
         };
 
         while (true) {
-            System.out.println("\n=== SMART HOME HUB ===");
+
+            String[] deviceOptions = new String[devices.length + 1];
 
             for (int i = 0; i < devices.length; i++) {
-                System.out.println((i + 1) + ". " + devices[i].getName());
-            }
-            System.out.println("0. Exit");
-
-            int choice;
-
-            while (true) {
-                try {
-                    System.out.print("Select device: ");
-                    choice = scanner.nextInt();
-
-                    if (choice < 0 || choice > devices.length) {
-                        System.out.println("Invalid choice. Try again.");
-                        continue;
-                    }
-
-                    break;
-
-                } catch (InputMismatchException e) {
-                    System.out.println("Invalid input! Please enter numbers only.");
-                    scanner.nextLine(); 
-                }
+                deviceOptions[i] = devices[i].getName();
             }
 
-            if (choice == 0) break;
+            deviceOptions[devices.length] = "Exit";
 
-            SmartDevice device = devices[choice - 1];
+            int choice = JOptionPane.showOptionDialog(
+                null,
+                "Select a device:",
+                "SMART HOME HUB",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.INFORMATION_MESSAGE,
+                null,
+                deviceOptions,
+                deviceOptions[0]
+            );
+
+            if (choice == devices.length || choice == -1) break;
+
+            SmartDevice device = devices[choice];
 
             while (true) {
-                int action;
 
-                try {
-                    System.out.println("\nSelected: " + device.getName());
-                    System.out.println("1. View Status");
-                    System.out.println("2. Modify Settings");
-                    System.out.println("3. Execute");
+                String[] actions = {
+                    "View Status",
+                    "Modify Settings",
+                    "Execute",
+                    "Back"
+                };
 
-                    if (device instanceof SmartSpeaker) {
-                        System.out.println("4. Play");
-                        System.out.println("5. Pause");
-                        System.out.println("6. Skip");
-                    }
+                int action = JOptionPane.showOptionDialog(
+                    null,
+                    "Selected: " + device.getName(),
+                    "Device Menu",
+                    JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.INFORMATION_MESSAGE,
+                    null,
+                    actions,
+                    actions[0]
+                );
 
-                    if (device instanceof SecurityCamera) {
-                        System.out.println("4. Start Recording");
-                        System.out.println("5. Stop Recording");
-                    }
-                    if(device instanceof SmartLock){
-                        System.out.println("4. View Failed Attempts");
-                    }
-
-                    System.out.println("0. Back");
-
-                    System.out.print("Select action: ");
-                    action = scanner.nextInt();
-
-                    if (action == 0) break;
-
-                } catch (InputMismatchException e) { 
-                    System.out.println("Invalid input! Please enter numbers only.");
-                    scanner.nextLine(); 
-                    continue;
-                }
+                if (action == 3 || action == -1) break;
 
                 switch (action) {
-                    case 1 -> device.viewState();
-                    case 2 -> device.modifySettings(scanner);
-                    case 3 -> device.execute();
-
-                    default -> {
-                        if (device instanceof SmartSpeaker speaker) {
-                            if (action == 4) speaker.play();
-                            else if (action == 5) speaker.pause();
-                            else if (action == 6) speaker.skip();
-                        }
-
-                        if (device instanceof SecurityCamera cam) {
-                            if (action == 4) cam.startRecording();
-                            else if (action == 5) cam.stopRecording();
-                        }
-                        if(device instanceof SmartLock lock){
-                            if(action == 4) lock.viewFailedAttempts();
-                        }
-                        if (device instanceof SecurityFloodlight flood) {
-                            if (action == 4) flood.triggerMotionAlert();
-                        }
+                    case 0 -> {
+                        device.viewState();
+                        JOptionPane.showMessageDialog(null, "Viewed successfully.");
                     }
+
+                    case 1 -> {
+                        device.modifySettings(new java.util.Scanner(System.in));
+                        JOptionPane.showMessageDialog(null, "Settings modified.");
+                    }
+
+                    case 2 -> {
+                        device.execute();
+                        JOptionPane.showMessageDialog(null, "Executed successfully.");
+                    }
+                }
+
+                if (device instanceof SmartSpeaker speaker) {
+                    String[] speakerActions = {"Play", "Pause", "Skip", "Back"};
+
+                    int spAction = JOptionPane.showOptionDialog(
+                        null,
+                        "Speaker Controls",
+                        "Smart Speaker",
+                        JOptionPane.DEFAULT_OPTION,
+                        JOptionPane.INFORMATION_MESSAGE,
+                        null,
+                        speakerActions,
+                        speakerActions[0]
+                    );
+
+                    if (spAction == 0) speaker.play();
+                    else if (spAction == 1) speaker.pause();
+                    else if (spAction == 2) speaker.skip();
+                }
+
+                if (device instanceof SecurityCamera cam) {
+                    String[] camActions = {"Start Recording", "Stop Recording", "Back"};
+
+                    int camAction = JOptionPane.showOptionDialog(
+                        null,
+                        "Camera Controls",
+                        "Security Camera",
+                        JOptionPane.DEFAULT_OPTION,
+                        JOptionPane.INFORMATION_MESSAGE,
+                        null,
+                        camActions,
+                        camActions[0]
+                    );
+
+                    if (camAction == 0) cam.startRecording();
+                    else if (camAction == 1) cam.stopRecording();
+                }
+
+                if (device instanceof SmartLock lock) {
+                    if (action == 0) lock.viewFailedAttempts();
+                }
+
+                if (device instanceof SecurityFloodlight flood) {
+                    String[] floodActions = {"Trigger Motion Alert", "Back"};
+
+                    int fAction = JOptionPane.showOptionDialog(
+                        null,
+                        "Floodlight Controls",
+                        "Security Floodlight",
+                        JOptionPane.DEFAULT_OPTION,
+                        JOptionPane.INFORMATION_MESSAGE,
+                        null,
+                        floodActions,
+                        floodActions[0]
+                    );
+
+                    if (fAction == 0) flood.triggerMotionAlert();
                 }
             }
         }
 
-        scanner.close();
-        System.out.println("Exiting system...");
+        JOptionPane.showMessageDialog(null, "Exiting system...");
     }
 }
