@@ -1,19 +1,18 @@
-import java.util.Scanner;
-
 import javax.swing.JOptionPane;
-
 import java.util.*;
-public class SmartLock extends BaseDevice implements SmartDevice{
+
+public class SmartLock extends BaseDevice implements SmartDevice {
+
     private boolean locked = true;
     private String pin = "2026";
     private List<String> failedAttempts = new ArrayList<>();
     private int attemptCount = 0;
-    
+
     public SmartLock(String name) {
         super(name);
     }
 
-    public boolean getLocked() {
+    public boolean isLocked() {
         return locked;
     }
 
@@ -21,63 +20,92 @@ public class SmartLock extends BaseDevice implements SmartDevice{
         this.locked = locked;
     }
 
-    public int attemptCount() {
+    public int getAttemptCount() {
         return attemptCount;
     }
 
-    public void setAttemptCount(int attemptCount) {
-        this.attemptCount = attemptCount;
-    }
+    @Override
     public void viewState() {
-        String info = "Device Name: " + getName() + "\nLocked: " + (getLocked() ? "YES" : "NO");
+        String info = "Device: " + getName()
+                + "\nStatus: " + (locked ? "LOCKED" : "UNLOCKED")
+                + "\nFailed Attempts: " + attemptCount;
+
         JOptionPane.showMessageDialog(null, info);
     }
 
+    @Override
     public void modifySettings(Scanner scanner) {
-        scanner.nextLine();
-        while(true){
+        attemptCount = 0;
+        while (attemptCount < 3) {
             try {
-                String input = JOptionPane.showInputDialog("Enter PIN: ");
-                if(input == null) return;
+                String input = JOptionPane.showInputDialog(
+                        null,
+                        "Enter 4-digit PIN:",
+                        "Smart Lock",
+                        JOptionPane.QUESTION_MESSAGE
+                );
+
+                if (input == null) return;
+
                 input = input.trim();
 
-                if(!input.matches("\\d{4}")){
-                    throw new IllegalArgumentException("Invalid input.");
+                if (!input.matches("\\d{4}")) {
+                    throw new IllegalArgumentException("PIN must be exactly 4 digits.");
                 }
+
                 if (input.equals(pin)) {
                     attemptCount = 0;
-                    setLocked(true);
+                    locked = !locked;
 
-                    JOptionPane.showMessageDialog(null, "PIN entered successfully. Device " + (getLocked() ? "Locked." : "Unlocked."));
-                    
-                    break;
+                    JOptionPane.showMessageDialog(
+                            null,
+                            "Access Granted \nDevice is now " + (locked ? "LOCKED " : "UNLOCKED ")
+                    );
+                    return;
+
                 } else {
                     attemptCount++;
                     failedAttempts.add(input);
-                    JOptionPane.showMessageDialog(null, "Attempt " + attemptCount + " of 3");
 
-                    if(attemptCount >= 3){
-                        setLocked(true);
-                        JOptionPane.showMessageDialog(null, "Too many failed attempts. Device Locked");
-                        break;
-                    }
-                    throw new IllegalArgumentException("WRONG PIN");
+                    JOptionPane.showMessageDialog(
+                            null,
+                            "Incorrect PIN \nAttempt " + attemptCount + " of 3"
+                    );
                 }
+
             } catch (IllegalArgumentException e) {
-                JOptionPane.showMessageDialog(null, e.getMessage() + "\nPlease try again.");
+                attemptCount++;
+
+                JOptionPane.showMessageDialog(
+                        null,
+                        e.getMessage() + "\nAttempt " + attemptCount + " of 3"
+                );
             }
         }
-    }
-    public void viewFailedAttempts(){
-        JOptionPane.showMessageDialog(null, "Failed attempts: " + attemptCount + "\n Failed Attempt Logs: ");
-        for(String attempt: failedAttempts){
-            JOptionPane.showMessageDialog(null, "Attempt: " + attempt + "\n");
-        }
-    }
-    public void execute(){
         locked = true;
-        String message = "Executing smart lock...\nDevice Locked...";
-        JOptionPane.showMessageDialog(null, message);
+        JOptionPane.showMessageDialog(null, "Too many failed attempts 🚫\nDevice locked.");
     }
+    public void viewFailedAttempts() {
 
+        if (failedAttempts.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "No failed attempts.");
+            return;
+        }
+
+        StringBuilder log = new StringBuilder("Failed Attempts:\n");
+
+        for (String attempt : failedAttempts) {
+            log.append("- ").append(attempt).append("\n");
+        }
+
+        JOptionPane.showMessageDialog(null, log.toString());
+    }
+    public void execute() {
+        locked = true;
+
+        JOptionPane.showMessageDialog(
+                null,
+                "Executing Smart Lock...\nDevice is now LOCKED 🔒"
+        );
+    }
 }

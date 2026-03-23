@@ -145,6 +145,10 @@ public class SmartSpeaker extends BaseDevice implements SmartDevice{
     }
 
     public void pause(){
+        if(tracks.isEmpty()){
+            JOptionPane.showMessageDialog(null, "No tracks available.");
+            return;
+        }
         playing = false;
         JOptionPane.showMessageDialog(null, "Paused" + tracks.get(currentIndex));
     }

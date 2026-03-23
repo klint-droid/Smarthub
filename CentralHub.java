@@ -1,4 +1,4 @@
-import javax.swing.JOptionPane;
+import javax.swing.*;
 
 public class CentralHub {
 
@@ -15,12 +15,11 @@ public class CentralHub {
 
         while (true) {
 
+            // Device selection
             String[] deviceOptions = new String[devices.length + 1];
-
             for (int i = 0; i < devices.length; i++) {
                 deviceOptions[i] = devices[i].getName();
             }
-
             deviceOptions[devices.length] = "Exit";
 
             int choice = JOptionPane.showOptionDialog(
@@ -38,18 +37,14 @@ public class CentralHub {
 
             SmartDevice device = devices[choice];
 
+            // Device menu loop
             while (true) {
 
-                String[] actions = {
-                    "View Status",
-                    "Modify Settings",
-                    "Execute",
-                    "Back"
-                };
+                String[] actions = getActions(device);
 
                 int action = JOptionPane.showOptionDialog(
                     null,
-                    "Selected: " + device.getName(),
+                    "Device: " + device.getName(),
                     "Device Menu",
                     JOptionPane.DEFAULT_OPTION,
                     JOptionPane.INFORMATION_MESSAGE,
@@ -58,85 +53,85 @@ public class CentralHub {
                     actions[0]
                 );
 
-                if (action == 3 || action == -1) break;
+                if (action == actions.length - 1 || action == -1) break;
 
-                switch (action) {
-                    case 0 -> {
-                        device.viewState();
-                        JOptionPane.showMessageDialog(null, "Viewed successfully.");
-                    }
-
-                    case 1 -> {
-                        device.modifySettings(new java.util.Scanner(System.in));
-                        JOptionPane.showMessageDialog(null, "Settings modified.");
-                    }
-
-                    case 2 -> {
-                        device.execute();
-                        JOptionPane.showMessageDialog(null, "Executed successfully.");
-                    }
-                }
-
-                if (device instanceof SmartSpeaker speaker) {
-                    String[] speakerActions = {"Play", "Pause", "Skip", "Back"};
-
-                    int spAction = JOptionPane.showOptionDialog(
-                        null,
-                        "Speaker Controls",
-                        "Smart Speaker",
-                        JOptionPane.DEFAULT_OPTION,
-                        JOptionPane.INFORMATION_MESSAGE,
-                        null,
-                        speakerActions,
-                        speakerActions[0]
-                    );
-
-                    if (spAction == 0) speaker.play();
-                    else if (spAction == 1) speaker.pause();
-                    else if (spAction == 2) speaker.skip();
-                }
-
-                if (device instanceof SecurityCamera cam) {
-                    String[] camActions = {"Start Recording", "Stop Recording", "Back"};
-
-                    int camAction = JOptionPane.showOptionDialog(
-                        null,
-                        "Camera Controls",
-                        "Security Camera",
-                        JOptionPane.DEFAULT_OPTION,
-                        JOptionPane.INFORMATION_MESSAGE,
-                        null,
-                        camActions,
-                        camActions[0]
-                    );
-
-                    if (camAction == 0) cam.startRecording();
-                    else if (camAction == 1) cam.stopRecording();
-                }
-
-                if (device instanceof SmartLock lock) {
-                    if (action == 0) lock.viewFailedAttempts();
-                }
-
-                if (device instanceof SecurityFloodlight flood) {
-                    String[] floodActions = {"Trigger Motion Alert", "Back"};
-
-                    int fAction = JOptionPane.showOptionDialog(
-                        null,
-                        "Floodlight Controls",
-                        "Security Floodlight",
-                        JOptionPane.DEFAULT_OPTION,
-                        JOptionPane.INFORMATION_MESSAGE,
-                        null,
-                        floodActions,
-                        floodActions[0]
-                    );
-
-                    if (fAction == 0) flood.triggerMotionAlert();
-                }
+                handleAction(device, action);
             }
         }
 
         JOptionPane.showMessageDialog(null, "Exiting system...");
+    }
+
+    // 🔹 Dynamic menu based on device
+    private static String[] getActions(SmartDevice device) {
+
+        if (device instanceof SmartSpeaker) {
+            return new String[]{
+                "View Status", "Modify Settings", "Execute",
+                "Play", "Pause", "Skip",
+                "Back"
+            };
+        }
+
+        if (device instanceof SecurityCamera) {
+            return new String[]{
+                "View Status", "Modify Settings", "Execute",
+                "Start Recording", "Stop Recording",
+                "Back"
+            };
+        }
+
+        if (device instanceof SecurityFloodlight) {
+            return new String[]{
+                "View Status", "Modify Settings", "Execute",
+                "Trigger Motion Alert",
+                "Back"
+            };
+        }
+
+        if (device instanceof SmartLock) {
+            return new String[]{
+                "View Status", "Modify Settings", "Execute",
+                "View Failed Attempts",
+                "Back"
+            };
+        }
+
+        return new String[]{
+            "View Status", "Modify Settings", "Execute", "Back"
+        };
+    }
+
+    private static void handleAction(SmartDevice device, int action) {
+
+        switch (action) {
+            case 0 -> device.viewState();
+
+            case 1 -> device.modifySettings(null);
+
+            case 2 -> device.execute();
+
+            default -> {
+
+                if (device instanceof SmartSpeaker speaker) {
+                    if (action == 3) speaker.play();
+                    else if (action == 4) speaker.pause();
+                    else if (action == 5) speaker.skip();
+                }
+
+                if (device instanceof SecurityCamera cam) {
+                    if (action == 3) cam.startRecording();
+                    else if (action == 4) cam.stopRecording();
+                }
+
+                if (device instanceof SecurityFloodlight flood) {
+                    if (action == 3) flood.triggerMotionAlert();
+                }
+
+                if (device instanceof SmartLock lock) {
+                    if (action == 3) lock.viewFailedAttempts();
+                }
+            }
+        }
     }
 }
