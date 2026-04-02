@@ -1,8 +1,11 @@
-import java.util.Scanner;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
 
 interface SmartDevice {
-    void viewState();
-    void modifySettings(Scanner scanner);
-    void execute();
+    String viewState();
+    String modifySettings(String input);
+    String execute();
     String getName();
+
+    JPanel getControlPanel(JTextArea outputArea);
 }

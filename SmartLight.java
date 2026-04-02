@@ -1,15 +1,14 @@
-import java.util.Scanner;
+import java.awt.Dimension;
 import java.util.InputMismatchException;
-import javax.swing.JOptionPane;
-
+import javax.swing.*;
 public class SmartLight extends BaseDevice implements SmartDevice{
     private int brightness;
     private String color;
 
-    public SmartLight(String name, int brightness, String color) {
+    public SmartLight(String name) {
         super(name);
-        setBrightness(brightness);
-        setColor(color);
+        setBrightness(100);
+        setColor("White");
     }
     public int getBrightness() {
         return brightness;
@@ -38,35 +37,81 @@ public class SmartLight extends BaseDevice implements SmartDevice{
         }
     }
 
-    public void viewState() {
-        String info = "Device Name: " + getName() + "\nBrightness: " + getBrightness() + "\nColor: " + getColor();
-        JOptionPane.showMessageDialog(null, info);
+    public String viewState() {
+         return "Device: " + getName() +
+               "\nBrightness: " + brightness +
+               "\nColor: " + color;
     }
 
-    public void modifySettings(Scanner scanner) {
-        int brightnessInput;
+    public String modifySettings(String input) {
         while(true){
             try{
-                String input = JOptionPane.showInputDialog("Enter brightness (0-100):");
-
-                if(input == null){
-                    return;
-                }
-                brightnessInput = Integer.parseInt(input);
-                setBrightness(brightnessInput);
-                break;
+                int value = Integer.parseInt(input);
+                setBrightness(value);
+                return "Brightness updated to " + brightness;
             } catch (InputMismatchException e) {
-                JOptionPane.showMessageDialog(null, "Invalid input. Please enter a number between 0 and 100.");
+                return "Invalid input! Please enter a number.";
             }
             catch (IllegalArgumentException e) {
-                JOptionPane.showMessageDialog(null, e.getMessage() + "\nPlease try again.");
+                return e.getMessage();
             }
         }
-        JOptionPane.showMessageDialog(null, "Settings modified. Brightness set to " + brightness + ", Color set to " + color + ".");
     }
-    public void execute(){
-        setBrightness(100);
+    public String execute(){
+        setBrightness(getBrightness());
         String message = "Executing smart light...\nBrightness set to " + getBrightness() + ", Color set to " + getColor() + ".";
-        JOptionPane.showMessageDialog(null, message);
+        return message;
+    }
+
+    public JPanel getControlPanel(JTextArea outputArea){
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        
+        JLabel brightnessLabel = new JLabel("Brightness: " + getBrightness());
+        brightnessLabel.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+
+        JSlider brightnesSlider = new JSlider(0, 100, getBrightness());
+        brightnesSlider.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        brightnesSlider.setMaximumSize(new Dimension(180, 40));
+
+        brightnesSlider.addChangeListener(e -> {
+            brightnessLabel.setText("Brightness: " + brightnesSlider.getValue());
+        });
+
+        JLabel colorLabel = new JLabel("Color:");
+        colorLabel.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+
+        JTextField colorField = new JTextField(getColor());
+        colorField.setMaximumSize(new Dimension(180, 30));
+        colorField.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+
+        JButton updateBtn = new JButton("Update Settings");
+        updateBtn.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+
+        updateBtn.addActionListener(e -> {
+            try{
+                int value = brightnesSlider.getValue();
+                setBrightness(value);
+                setColor(colorField.getText());
+
+                outputArea.setText("Settings updated!\n" + viewState());
+            } catch (Exception ex){
+                outputArea.setText("Error: " + ex.getMessage());
+            }   
+        });
+
+        panel.add(brightnessLabel);
+        panel.add(Box.createVerticalStrut(5));
+        panel.add(brightnesSlider);
+
+        panel.add(Box.createVerticalStrut(15));
+        panel.add(colorLabel);
+        panel.add(Box.createVerticalStrut(5));
+        panel.add(colorField);
+
+        panel.add(Box.createVerticalStrut(20));
+        panel.add(updateBtn);
+
+        return panel;
     }
 }

@@ -1,98 +1,139 @@
-import java.util.Scanner;
+import javax.swing.*;
+import java.awt.GridLayout;
 
-import javax.swing.JOptionPane;
-
-import java.util.InputMismatchException;
-public class SecurityCamera extends BaseDevice implements SmartDevice{
+public class SecurityCamera extends BaseDevice implements SmartDevice {
     private boolean powerOn = false;
     private boolean recording = false;
 
-    public SecurityCamera(String name){
+    public SecurityCamera(String name) {
         super(name);
     }
 
-    public boolean getPowerOn(){
+    public boolean isPowerOn() {
         return powerOn;
     }
 
-    public boolean getRecording(){
+    public boolean isRecording() {
         return recording;
     }
 
-    public void setPowerOn(boolean powerOn){
+    public void setPowerOn(boolean powerOn) {
         this.powerOn = powerOn;
+
+        if (!powerOn) {
+            recording = false;
+        }
     }
 
-    public void setRecording(boolean recording){
+    public void setRecording(boolean recording) {
         this.recording = recording;
     }
-    public void viewState(){
-        String info = "Device Name: " + getName() + "\nPower: " + (powerOn ? "ON" : "OFF") + "\nRecording: " + (recording ? "YES" : "NO");
-        JOptionPane.showMessageDialog(null, info);
+
+    public String viewState() {
+        return "Device: " + getName() +
+               "\nPower: " + (powerOn ? "ON" : "OFF") +
+               "\nRecording: " + (recording ? "YES" : "NO");
     }
-    public void modifySettings(Scanner scanner){
 
+    public String modifySettings(String input) {
+        if (input.equals("1")) {
+            setPowerOn(true);
+            return "Camera turned ON";
+        } 
+        else if (input.equals("0")) {
+            setPowerOn(false);
+            return "Camera turned OFF (Recording stopped)";
+        } 
+        else {
+            return "Invalid input! Use 1 (ON) or 0 (OFF)";
+        }
+    }
 
-        while (true) {
-            try{
-                String input = JOptionPane.showInputDialog("Enter power (1 = ON, 0 = OFF): ");
-                if(input == null) return;
-                int powerInput = Integer.parseInt(input);
-                
-                if(powerInput == 1){
-                    setPowerOn(true);
-                } else if (powerInput == 0){
-                    setPowerOn(false);
-                    setRecording(false);
-                    break;
-                } else {
-                    throw new IllegalArgumentException("Invalid input.");
-                }
-                break;
-            } catch (IllegalArgumentException e) {
-                JOptionPane.showMessageDialog(null, e.getMessage() + "\nPlease try again.");
-            } 
-            catch (InputMismatchException e) {
-                JOptionPane.showMessageDialog(null, "Please enter a number between 0 and 1 only. Please try again.");
+    public String startRecording() {
+        if (!powerOn) {
+            return "Camera is OFF. Cannot start recording.";
+        }
+
+        if (!recording) {
+            recording = true;
+            return "Recording started.";
+        } else {
+            return "Already recording.";
+        }
+    }
+
+    public String stopRecording() {
+        if (!powerOn) {
+            return "Camera is OFF.";
+        }
+
+        if (recording) {
+            recording = false;
+            return "Recording stopped.";
+        } else {
+            return "Already stopped.";
+        }
+    }
+
+    public String execute() {
+        if (powerOn) {
+            if (!recording) {
+                recording = true;
+                return "Camera ON → Recording started.";
+            } else {
+                return "Camera already recording.";
             }
+        } else {
+            return "Camera is OFF.";
         }
     }
 
-    public void startRecording(){
-        if(!powerOn){
-            JOptionPane.showMessageDialog(null, "Camera is off...Cannot start recording.");
-            return;
-        }
+    public JPanel getControlPanel(JTextArea outputArea){
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(6, 1, 5, 5));
 
-        if(!recording){
-            setRecording(true);
-            JOptionPane.showMessageDialog(null, "Recording started.");
-        } else {
-            JOptionPane.showMessageDialog(null, "Recording already started.");
-        }
-    }
+        JLabel powerLabel = new JLabel("Power:");
+        JButton togglePowerBtn = new JButton(powerOn ? "Turn OFF" : "Turn ON");
 
-    public void stopRecording(){
-        if(!powerOn){
-            JOptionPane.showMessageDialog(null, "Camera is off...");
-            return;
-        }
+        togglePowerBtn.addActionListener(e -> {
+            setPowerOn(!powerOn);
+            
+            powerLabel.setText("Power: " + (powerOn ? "ON" : "OFF"));
+            togglePowerBtn.setText(powerOn ? "TURN OFF" : "TURN ON");
 
-        if(recording){
-            setRecording(false);
-            JOptionPane.showMessageDialog(null, "Recording stopped.");
-        } else {
-            JOptionPane.showMessageDialog(null, "Already stopped.");
-        }
-    }
-    public void execute(){
-        if(powerOn && !recording){
-            setRecording(true);
-            String message = "Executing security camera...\nRecording started...";
-            JOptionPane.showMessageDialog(null, message);
-        } else {
-            setRecording(false);
-            JOptionPane.showMessageDialog(null, "Camera is off...");
-        }
+            outputArea.setText(viewState());
+        });
+
+        JButton startRecordingBtn = new JButton("Start Recording");
+
+        startRecordingBtn.addActionListener(e -> {
+            String result = startRecording();
+            outputArea.setText(result + "\n\n" + viewState());
+        });
+
+        JButton stopRecordingBtn = new JButton("Stop Recording");
+
+        stopRecordingBtn.addActionListener(e -> {
+            String result = stopRecording();
+            outputArea.setText(result + "\n\n" + viewState());
+        });
+
+        JLabel statusLabel = new JLabel("Recording: " + (recording ? "YES" : "NO"));
+
+        JButton refreshBtn = new JButton("Refresh Status");
+
+        refreshBtn.addActionListener(e -> {
+            statusLabel.setText("Recording: " + (recording ? "YES" : "NO"));
+            outputArea.setText(viewState());
+        });
+
+        panel.add(powerLabel);
+        panel.add(togglePowerBtn);
+        panel.add(startRecordingBtn);
+        panel.add(stopRecordingBtn);
+        panel.add(statusLabel);
+        panel.add(refreshBtn);
+
+        return panel;
     }
 }

@@ -1,5 +1,5 @@
-import javax.swing.JOptionPane;
-import java.util.Scanner;
+import javax.swing.*;
+import java.awt.GridLayout;
 
 public class SecurityFloodlight extends SmartLight {
 
@@ -8,7 +8,9 @@ public class SecurityFloodlight extends SmartLight {
     private boolean motionArmed = false;
 
     public SecurityFloodlight(String name, int brightness, String color) {
-        super(name, brightness, color);
+        super(name);
+        setBrightness(brightness);
+        setColor(color);
     }
 
     public boolean isMotionArmed() {
@@ -19,95 +21,129 @@ public class SecurityFloodlight extends SmartLight {
         this.motionArmed = motionArmed;
     }
 
-
-    public void viewState() {
-        super.viewState();
-
-        String info = "Motion Detection: " + (motionArmed ? "ON" : "OFF") +
-                      "\nSensitivity: " + motionSensitivityOptions[sensitivityIndex];
-
-        JOptionPane.showMessageDialog(null, info);
+    public String viewState() {
+        return super.viewState() +
+               "\nMotion Detection: " + (motionArmed ? "ON" : "OFF") +
+               "\nSensitivity: " + motionSensitivityOptions[sensitivityIndex];
     }
 
-    public void modifySettings(Scanner scanner) {
+    public String modifySettings(String input) {
 
-        while (true) {
+        if (input == null) return "Operation cancelled.";
+
+        input = input.toLowerCase().trim();
+
+        if (input.equals("on")) {
+            motionArmed = true;
+            return "Motion detection ON";
+        } 
+        else if (input.equals("off")) {
+            motionArmed = false;
+            return "Motion detection OFF";
+        } 
+        else if (input.startsWith("sensitivity:")) {
             try {
-                String input = JOptionPane.showInputDialog(
-                        null,
-                        "Motion Detection:\n1 = ON\n0 = OFF"
-                );
-
-                if (input == null) return;
-
-                int value = Integer.parseInt(input.trim());
-
-                if (value != 0 && value != 1) {
-                    throw new IllegalArgumentException("Only 0 or 1 allowed.");
+                int value = Integer.parseInt(input.split(":")[1]);
+                if (value < 1 || value > 3) {
+                    return "Sensitivity must be 1–3";
                 }
-
-                motionArmed = (value == 1);
-                break;
-
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(null, "Invalid number input.");
-            } catch (IllegalArgumentException e) {
-                JOptionPane.showMessageDialog(null, e.getMessage());
+                sensitivityIndex = value - 1;
+                return "Sensitivity set to " + motionSensitivityOptions[sensitivityIndex];
+            } catch (Exception e) {
+                return "Invalid sensitivity format. Use: sensitivity:1-3";
             }
-        }
-
-        super.modifySettings(scanner);
-
-        while (true) {
-            try {
-                String message = "Select Sensitivity:\n";
-
-                for (int i = 0; i < motionSensitivityOptions.length; i++) {
-                    message += (i + 1) + ". " + motionSensitivityOptions[i] + "\n";
-                }
-
-                String input = JOptionPane.showInputDialog(null, message);
-
-                if (input == null) return;
-
-                int choice = Integer.parseInt(input.trim());
-
-                if (choice < 1 || choice > 3) {
-                    throw new IllegalArgumentException("Choose 1–3 only.");
-                }
-
-                sensitivityIndex = choice - 1;
-                JOptionPane.showMessageDialog(null,
-                        "Sensitivity set to " + motionSensitivityOptions[sensitivityIndex]);
-
-                break;
-
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(null, "Invalid number input.");
-            } catch (IllegalArgumentException e) {
-                JOptionPane.showMessageDialog(null, e.getMessage());
-            }
+        } 
+        else {
+            return super.modifySettings(input);
         }
     }
 
-    public void triggerMotionAlert() {
-
+    public String triggerMotionAlert() {
         if (!motionArmed) {
-            JOptionPane.showMessageDialog(null, "Motion detection is OFF.");
-            return;
+            return "Motion detection is OFF.";
         }
 
         setBrightness(100);
 
-        String message = "Motion Detected!\n"
-                + "Sensitivity: " + motionSensitivityOptions[sensitivityIndex]
-                + "\nBrightness set to MAX.";
-
-        JOptionPane.showMessageDialog(null, message);
+        return "Motion Detected!\n" +
+               "Sensitivity: " + motionSensitivityOptions[sensitivityIndex] +
+               "\nBrightness set to MAX.";
     }
 
-    public void execute() {
-        super.execute();
-        triggerMotionAlert();
+    public String execute() {
+        setBrightness(100);
+        motionArmed = true;
+
+        return "Floodlight activated.\n" +
+               triggerMotionAlert();
+    }
+
+    public JPanel getControlPanel(JTextArea outputArea){
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(10, 1, 5, 5));
+
+        JLabel brightnessLabel = new JLabel("Brightness: " + getBrightness());
+        JSlider brightnessSlider = new JSlider(0, 100, getBrightness());
+
+        brightnessSlider.addChangeListener(e -> {
+            setBrightness(brightnessSlider.getValue());
+            brightnessLabel.setText("Brightness: " + getBrightness());
+        });
+
+        JTextField colorField = new JTextField(getColor());
+        colorField.setBorder(BorderFactory.createTitledBorder("Color"));
+
+        JButton applyColorBtn = new JButton("Apply Color");
+        applyColorBtn.addActionListener(e -> {
+            try {
+                setColor(colorField.getText());
+                outputArea.setText("Color updated!\n" + viewState());
+            } catch (Exception ex) {
+                outputArea.setText("Error: " + ex.getMessage());
+            }
+        });
+
+        JLabel motionLabel = new JLabel("Motion Detection: " + (motionArmed ? "ON" : "OFF"));
+        JButton motionToggleBtn = new JButton("Toggle Motion Detection");
+        JButton triggerAlertBtn = new JButton("Trigger Motion Alert");
+
+        motionToggleBtn.addActionListener(e -> {
+            motionArmed = !motionArmed;
+
+            motionLabel.setText("Motion: " + (motionArmed ? "ON" : "OFF"));
+            motionToggleBtn.setText(motionArmed ? "Turn Off" : "Turn On");
+            
+            triggerAlertBtn.setEnabled(motionArmed);
+
+            outputArea.setText("Motion detection " + (motionArmed ? "enabled" : "disabled") + ".\n" + viewState());
+        });
+
+        String[] options = {"LOW", "MEDIUM", "HIGH"};
+        JComboBox<String> sensitivityDropdown = new JComboBox<>(options);
+
+        sensitivityDropdown.setSelectedIndex(sensitivityIndex);
+
+        sensitivityDropdown.addActionListener(e -> {
+            sensitivityIndex = sensitivityDropdown.getSelectedIndex();
+            outputArea.setText("Sensitivity set to: " + options[sensitivityIndex] + "\n\n" + viewState());
+        });
+
+        triggerAlertBtn.addActionListener(e -> {
+            String result = triggerMotionAlert();
+            brightnessLabel.setText("Brightness: " + getBrightness());
+            outputArea.setText(result + "\n\n" + viewState());
+        });
+
+        panel.add(brightnessLabel);
+        panel.add(brightnessSlider);
+        panel.add(colorField);
+        panel.add(applyColorBtn);
+        panel.add(motionLabel);
+        panel.add(motionToggleBtn);
+        panel.add(new JLabel("Sensitivity:"));
+        panel.add(sensitivityDropdown);
+        panel.add(triggerAlertBtn);
+
+        return panel;
     }
 }
